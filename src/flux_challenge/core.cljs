@@ -1,5 +1,6 @@
 (ns ^:figwheel-always flux-challenge.core
-    (:require [rum.core :as rum]))
+    (:require [rum.core :as rum]
+              [flux-challenge.store :as store]))
 
 (enable-console-print!)
 
@@ -10,23 +11,13 @@
 (def current-planet (atom "Tatooine"))
 (def current-planet-socket (js/WebSocket. "ws://localhost:4000"))
 
-(def sith-lords (atom [{:name "Jorak Uln" :homeworld "Korriban"}
-                      {:name "Skere Kaan" :homeworld "Coruscant"}
-                      {:name "Na'daz" :homeworld "Ryloth"}
-                      {:name "Kas'im" :homeworld "Nal Hutta"}
-                      {:name "Darth Bane" :homeworld "Apatros"}]))
-
-
 (defn on-js-reload []
-  ;; optionally touch your app-state to force rerendering depending on
-  ;; your application
-  ;; (swap! app-state update-in [:__figwheel_counter] inc)
-)
+  (store/reset-lords-list!))
 
 (rum/defc list-slot [current-planet sith-lord]
   [:li {:class (str "css-slot " (when (= current-planet (:homeworld sith-lord)) "matching-planet")) }
    [:h3 (:name sith-lord)]
-   [:h6 (str "Homeworld: " (:homeworld sith-lord))]])
+   [:h6 (str "Homeworld: " (:name (:homeworld sith-lord)))]])
 
 (rum/defc scroll-buttons []
   [:div {:class "css-scroll-buttons"}
@@ -44,10 +35,12 @@
       (scroll-buttons)]]])
 
 (rum/defc app < rum/reactive [state]
-  (let [planet (rum/react current-planet)]
-    (list-slots @sith-lords planet)))
+  (let [planet (rum/react current-planet)
+        sith-lords (rum/react store/sith-lords)]
+    (list-slots sith-lords planet)))
 
 (rum/mount (app) (.getElementById js/document "app"))
+(store/init "http://localhost:3000/dark-jedis/3616")
 (aset current-planet-socket "onmessage" (fn [e]
                                           (let [json (.parse js/JSON (aget e "data"))]
                                             (reset! current-planet (aget json "name")))))
