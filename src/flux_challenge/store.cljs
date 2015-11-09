@@ -25,7 +25,7 @@
           (>! response null-sith-lord))
       response)))
 
-(defn fetch-sith-lords [url start end]
+(defn fetch-apprentices [url start end]
   (go-loop [url url
             start start
             end end]
@@ -34,8 +34,17 @@
                (swap! sith-lords conj (:body response))
                (recur (:url (:apprentice (:body response))) (inc start) end)))))
 
+(defn fetch-masters [url start end]
+  (go-loop [url url
+            start start
+            end end]
+           (when (< start end)
+             (let [response (<! (fetch-sith-lord url))]
+               (reset! sith-lords (vec (take 5 (into [(:body response)] @sith-lords))))
+               (recur (:url (:master (:body response))) (inc start) end)))))
+
 (defn init [url]
   (go []
       (let [response (<! (http/get url {:with-credentials? false}))]
         (swap! sith-lords conj (:body response))
-        (fetch-sith-lords (:url (:apprentice (:body response))) 1 5))))
+        (fetch-apprentices (:url (:apprentice (:body response))) 1 5))))

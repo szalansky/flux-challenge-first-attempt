@@ -19,10 +19,16 @@
    [:h3 (:name sith-lord)]
    [:h6 (str "Homeworld: " (:name (:homeworld sith-lord)))]])
 
-(rum/defc scroll-buttons []
+(rum/defc scroll-buttons [sith-lords]
+  (let [up-disabled (not (:url (:master (first sith-lords))))
+        down-disabled (not (:url (:apprentice (last sith-lords))))]
   [:div {:class "css-scroll-buttons"}
-   [:button {:class "css-button-up"}
-   [:button {:class "css-button-down"}]]])
+   [:button {:class (str "css-button-up " (when up-disabled "css-button-disabled"))
+             :disabled up-disabled
+             :on-click (fn [_] (store/fetch-masters (:url (:master (first sith-lords))) 1 3))}
+   [:button {:class (str "css-button-down " (when down-disabled "css-button-disabled"))
+             :disabled down-disabled
+             :on-click (fn [_] (store/fetch-apprentices (:url (:apprentice (last sith-lords))) 1 3))}]]]))
 
 (rum/defc list-slots [sith-lords current-planet]
   [:div {:class "app-container"}
@@ -32,7 +38,7 @@
     [:section {:class "css-scrollable-list"}
      [:ul {:class "css-slots"}
       (map (partial list-slot current-planet) sith-lords)]
-      (scroll-buttons)]]])
+      (scroll-buttons sith-lords)]]])
 
 (rum/defc app < rum/reactive [state]
   (let [planet (rum/react current-planet)
