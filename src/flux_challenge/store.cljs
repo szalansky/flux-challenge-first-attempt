@@ -40,11 +40,11 @@
             end end]
            (when (< start end)
              (let [response (<! (fetch-sith-lord url))]
-               (reset! sith-lords (subvec (into [(:body response)] @sith-lords) 0 5))
+               (reset! sith-lords (vec (take 5 (into [(:body response)] @sith-lords))))
                (recur (:url (:master (:body response))) (inc start) end)))))
 
 (defn init [url]
   (go []
       (let [response (<! (http/get url {:with-credentials? false}))]
-        (reset! sith-lords (subvec (conj @sith-lords (:body response)) 0 5))
+        (swap! sith-lords conj (:body response))
         (fetch-apprentices (:url (:apprentice (:body response))) 1 5))))
