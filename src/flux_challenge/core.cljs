@@ -15,7 +15,7 @@
   (store/reset-lords-list!))
 
 (rum/defc list-slot [current-planet sith-lord]
-  [:li {:class (str "css-slot " (when (= current-planet (:homeworld sith-lord)) "matching-planet")) }
+  [:li {:class (str "css-slot " (when (= current-planet (:name (:homeworld sith-lord))) "matching-planet")) }
    [:h3 (:name sith-lord)]
    [:h6 (str "Homeworld: " (:name (:homeworld sith-lord)))]])
 

@@ -16,7 +16,6 @@
           (fetch-until-limit (:url (:apprentice (:body response))) (inc idx) limit)))))
 
 (defn fetch-sith-lord [url]
-  (.log js/console url)
   (if url
     (http/get url {:with-credentials? false})
     (let [null-sith-lord {:body {:null-sith-lord true :homeworld nil :apprentice {:url nil}}}
