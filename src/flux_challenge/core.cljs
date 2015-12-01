@@ -25,10 +25,10 @@
   [:div {:class "css-scroll-buttons"}
    [:button {:class (str "css-button-up " (when up-disabled "css-button-disabled"))
              :disabled up-disabled
-             :on-click (fn [_] (store/fetch-masters (:url (:master (first sith-lords))) 1 3))}
+             :on-click (fn [_] (store/fetch-masters (:url (:master (first sith-lords))) 2))}
    [:button {:class (str "css-button-down " (when down-disabled "css-button-disabled"))
              :disabled down-disabled
-             :on-click (fn [_] (store/fetch-apprentices (:url (:apprentice (last sith-lords))) 1 3))}]]]))
+             :on-click (fn [_] (store/fetch-apprentices (:url (:apprentice (last sith-lords))) 2))}]]]))
 
 (rum/defc list-slots [sith-lords current-planet]
   [:div {:class "app-container"}

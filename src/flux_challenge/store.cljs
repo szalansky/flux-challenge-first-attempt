@@ -8,13 +8,6 @@
 (defn reset-lords-list! []
   (reset! sith-lords []))
 
-(defn fetch-until-limit [url idx limit]
-  (when (< idx limit)
-    (go []
-        (let [response (<! (http/get url {:with-credentials? false}))]
-          (swap! sith-lords conj (:body response))
-          (fetch-until-limit (:url (:apprentice (:body response))) (inc idx) limit)))))
-
 (defn fetch-sith-lord [url]
   (if url
     (http/get url {:with-credentials? false})
@@ -24,26 +17,28 @@
           (>! response null-sith-lord))
       response)))
 
-(defn fetch-apprentices [url start end]
+(defn fetch-masters [url n]
   (go-loop [url url
-            start start
-            end end]
-           (when (< start end)
+            start 0
+            end n
+            masters @sith-lords]
+           (if (< start end)
              (let [response (<! (fetch-sith-lord url))]
-               (swap! sith-lords conj (:body response))
-               (recur (:url (:apprentice (:body response))) (inc start) end)))))
+               (recur (:url (:master (:body response))) (inc start) end (into [(:body response)] masters)))
+             (reset! sith-lords (vec (take 5 masters))))))
 
-(defn fetch-masters [url start end]
+(defn fetch-apprentices [url n]
   (go-loop [url url
-            start start
-            end end]
-           (when (< start end)
+            start 0
+            end n
+            apprentices @sith-lords]
+           (if (< start end)
              (let [response (<! (fetch-sith-lord url))]
-               (reset! sith-lords (vec (take 5 (into [(:body response)] @sith-lords))))
-               (recur (:url (:master (:body response))) (inc start) end)))))
+               (recur (:url (:apprentice (:body response))) (inc start) end (conj apprentices (:body response))))
+             (reset! sith-lords (vec (take-last 5 apprentices))))))
 
 (defn init [url]
   (go []
       (let [response (<! (http/get url {:with-credentials? false}))]
         (swap! sith-lords conj (:body response))
-        (fetch-apprentices (:url (:apprentice (:body response))) 1 5))))
+        (fetch-apprentices (:url (:apprentice (:body response))) 4))))
